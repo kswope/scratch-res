@@ -1,0 +1,21 @@
+{
+  "name": "scratch-res",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "re:build": "rescript",
+    "re:start": "rescript build -w",
+    "js:watch": "nodemon src/Index.bs.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.20",
+    "rescript": "^10.0.1"
+  },
+  "dependencies": {
+    "polka": "^0.5.2",
+    "rescript-polka": "link:../rescript-polka"
+  }
+}
