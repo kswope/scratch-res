@@ -4,15 +4,14 @@
 var DalData = require("../dal/DalData.bs.js");
 var Js_dict = require("rescript/lib/js/js_dict.js");
 var Js_option = require("rescript/lib/js/js_option.js");
+var Caml_option = require("rescript/lib/js/caml_option.js");
 
 function finalNestedFolderStructure(folders) {
   var unkeyedFoldersAccum = [];
   Js_dict.entries(folders).forEach(function (param) {
         var folder = param[1];
-        console.log(folder);
         var parentId = folder.parentId;
         if (parentId !== undefined) {
-          console.log("pushing " + folder.id + " onto " + parentId + " ");
           var parent = folders[parentId];
           parent.folders.push(folder);
           return ;
@@ -25,32 +24,38 @@ function finalNestedFolderStructure(folders) {
 function gatherBookmarksKeyedByFolder(rows) {
   var folderMap = {};
   rows.forEach(function (dataRow) {
+        if (Js_option.isNone(Js_dict.get(folderMap, dataRow.foldersId))) {
+          var nf_id = dataRow.foldersId;
+          var nf_name = dataRow.foldersName;
+          var nf_parentId = Caml_option.nullable_to_opt(dataRow.parentId);
+          var nf_bookmarks = [];
+          var nf_folders = [];
+          var nf = {
+            id: nf_id,
+            name: nf_name,
+            parentId: nf_parentId,
+            bookmarks: nf_bookmarks,
+            folders: nf_folders
+          };
+          folderMap[dataRow.foldersId] = nf;
+        }
+        if (!Js_option.isSome(Caml_option.nullable_to_opt(dataRow.bookmarksId))) {
+          return ;
+        }
+        var nbm_id = Js_option.getWithDefault("", Caml_option.nullable_to_opt(dataRow.bookmarksId));
+        var nbm_name = Js_option.getWithDefault("", Caml_option.nullable_to_opt(dataRow.bookmarksName));
+        var nbm_url = Js_option.getWithDefault("", Caml_option.nullable_to_opt(dataRow.bookmarksUrl));
+        var nbm = {
+          id: nbm_id,
+          name: nbm_name,
+          url: nbm_url
+        };
         var row = Js_dict.get(folderMap, dataRow.foldersId);
         if (row !== undefined) {
-          var nbm_id = Js_option.getWithDefault("", dataRow.bookmarksId);
-          var nbm_name = Js_option.getWithDefault("", dataRow.bookmarksName);
-          var nbm_url = Js_option.getWithDefault("", dataRow.bookmarksUrl);
-          var nbm = {
-            id: nbm_id,
-            name: nbm_name,
-            url: nbm_url
-          };
           row.bookmarks.push(nbm);
           return ;
         }
-        var nf_id = dataRow.foldersId;
-        var nf_name = dataRow.foldersName;
-        var nf_parentId = dataRow.parentId;
-        var nf_bookmarks = [];
-        var nf_folders = [];
-        var nf = {
-          id: nf_id,
-          name: nf_name,
-          parentId: nf_parentId,
-          bookmarks: nf_bookmarks,
-          folders: nf_folders
-        };
-        folderMap[dataRow.foldersId] = nf;
+        
       });
   return folderMap;
 }

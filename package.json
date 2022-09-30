@@ -5,6 +5,7 @@
   "scripts": {
     "re:build": "rescript",
     "re:start": "rescript build -w",
+    "re:clean": "rescript clean",
     "js:watch": "nodemon src/Index.bs.js"
   },
   "keywords": [],

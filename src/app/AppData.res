@@ -11,7 +11,7 @@ type nestedBookmark = {
 type rec nestedFolder = {
   id: string,
   name: string,
-  parentId: Js.Nullable.t<string>,
+  parentId: option<string>,
   bookmarks: array<nestedBookmark>, // contained bookmarks
   folders: array<nestedFolder>, // child folders
 }
@@ -25,10 +25,8 @@ let finalNestedFolderStructure = folders => {
   let unkeyedFoldersAccum = []
 
   Js.Dict.entries(folders)->Js.Array2.forEach(((_id, folder)) => {
-    Js.log(folder)->ignore
-    switch Js.Nullable.toOption(folder.parentId) {
+    switch folder.parentId {
     | Some(parentId) => {
-        Js.log(`pushing ${folder.id} onto ${parentId} `)
         let parent = Js.Dict.unsafeGet(folders, parentId)
         Js.Array2.push(parent.folders, folder)->ignore
       }
@@ -37,23 +35,7 @@ let finalNestedFolderStructure = folders => {
     }
   })
 
-  //   let unkeyedFolders: NestedFolder[] = []
-  //   for (const [folderKey, folderData] of Object.entries(folders)) {
-  // Put folder in its parent (keeping its original reference by key inplace,
-  // in case it itself is a parent, meaning folder will exist both at top
-  // level with a key and inside parent folder).  This will build up a nested
-  // data structure of parent/child folders without ever having to go more
-  // than one level deep.
-  //     if (folderData.folderId) {
-  //       folders[folderData.folderId]?.folders.push(folderData)
-  //     } else {
-  //move top folders to accumulator
-  //       unkeyedFolders.push(folders[folderKey]!)
-  //     }
-  //   }
-
   unkeyedFoldersAccum
-  //   return unkeyedFolders
 }
 
 //┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
@@ -65,26 +47,28 @@ let gatherBookmarksKeyedByFolder = (rows: array<DalData.t>) => {
   let folderMap = Js.Dict.empty()
 
   Js.Array2.forEach(rows, dataRow => {
-    switch Js.Dict.get(folderMap, dataRow.foldersId) {
-    // add folder to dict
-    | None => {
-        let nf: nestedFolder = {
-          id: dataRow.foldersId,
-          name: dataRow.foldersName,
-          parentId: dataRow.parentId,
-          bookmarks: [], // contained bookmarks
-          folders: [], // child folders
-        }
-        Js.Dict.set(folderMap, dataRow.foldersId, nf)
+    // if folder not yet in Dict add it
+    if Js.Dict.get(folderMap, dataRow.foldersId)->Js.Option.isNone {
+      let nf: nestedFolder = {
+        id: dataRow.foldersId,
+        name: dataRow.foldersName,
+        parentId: Js.Nullable.toOption(dataRow.parentId),
+        bookmarks: [], // contained bookmarks
+        folders: [], // child folders
       }
+      Js.Dict.set(folderMap, dataRow.foldersId, nf)
+    }
 
-    | Some(row) => {
-        let nbm: nestedBookmark = {
-          id: Js.Nullable.fromOption(dataRow.bookmarksId),
-          name: dataRow.bookmarksName,
-          url: dataRow.bookmarksUrl,
-        }
-        Js.Array2.push(row.bookmarks, nbm)->ignore
+    // row contains bookmark data, insert into folder
+    if Js.Nullable.toOption(dataRow.bookmarksId)->Js.Option.isSome {
+      let nbm: nestedBookmark = {
+        id: Js.Option.getWithDefault("", Js.Nullable.toOption(dataRow.bookmarksId)),
+        name: Js.Option.getWithDefault("", Js.Nullable.toOption(dataRow.bookmarksName)),
+        url: Js.Option.getWithDefault("", Js.Nullable.toOption(dataRow.bookmarksUrl)),
+      }
+      switch Js.Dict.get(folderMap, dataRow.foldersId) {
+      | Some(row) => Js.Array2.push(row.bookmarks, nbm)->ignore
+      | None => () // this should not happen because folder already added
       }
     }
   })
