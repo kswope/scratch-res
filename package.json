@@ -15,6 +15,9 @@
     "rescript": "^10.0.1"
   },
   "dependencies": {
+    "@ryyppy/rescript-promise": "^2.1.0",
+    "dotenv": "^16.0.2",
+    "pg": "^8.8.0",
     "polka": "^0.5.2",
     "rescript-polka": "link:../rescript-polka"
   }
