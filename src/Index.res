@@ -1,19 +1,10 @@
-type externalUser = {userName: string, email: Js.Nullable.t<string>}
-@module("./data.js") external userFromDb: unit => externalUser = "userFromDb"
-
-switch Js.Nullable.toOption(userFromDb().email) {
-| Some(email) => Js.log2("sending email to", email)
-| None => Js.log("error: user doesnt want email")
+type r = {
+  a: int,
+  b: int,
+  c: int,
 }
 
-// conversion to friendlier user record type
-type internalUser = {userName: string, email: option<string>}
-let user: internalUser = {
-  userName: userFromDb().userName,
-  email: Js.Nullable.toOption(userFromDb().email),
-}
+let (a, b, c) = (1, 2, 3)
 
-switch user.email {
-| Some(email) => Js.log2("sending email to", email)
-| None => Js.log("error: user doesnt want email")
-}
+let r1 = {a, b, c}
+Js.log(r1.a)

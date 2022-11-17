@@ -2,20 +2,27 @@
   "name": "scratch-res",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "scripts": {
-    "re:build": "rescript",
-    "re:start": "rescript build -w",
-    "js:watch": "nodemon src/Index.bs.js"
+    "res:build": "rescript",
+    "res:start": "rescript build -w",
+    "js:start": "nodemon src/Index.mjs",
+    "socat": "socat readline,history=$HOME/.socat.hist TCP4:localhost:7005,crlf",
+    "netcat:raw": "stty -icanon && nc 127.0.0.1 7005"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "nodemon": "^2.0.20",
-    "rescript": "^10.0.1"
+    "rescript": "10.1.0-alpha.2"
   },
   "dependencies": {
-    "polka": "^0.5.2",
-    "rescript-polka": "link:../rescript-polka"
+    "@ryyppy/rescript-promise": "^2.1.0",
+    "chance": "^1.1.8",
+    "nodemailer": "^6.8.0",
+    "nodemon": "^2.0.20",
+    "rescript": "10.1.0-alpha.2",
+    "vitest": "^0.24.1"
   }
 }
